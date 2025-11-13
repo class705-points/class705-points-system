@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #4e54c8, #8f94fb);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            padding: 0 60px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            padding: 0 60px;
+        }
+        
+        .edit-title-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .edit-title-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .summary {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4e54c8;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .add-btn {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+        }
+        
+        .import-btn {
+            background: linear-gradient(to right, #ff9a00, #ff6a00);
+            color: white;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+        }
+        
+        .export-btn {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .sync-btn {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+        
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background-color: #4e54c8;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: #4e54c8;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(78, 84, 200, 0.2);
+        }
+        
+        .action-btn {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+        
+        .edit-btn {
+            background: #4e54c8;
+            color: white;
+        }
+        
+        .add-btn-sm {
+            background: #00b09b;
+            color: white;
+        }
+        
+        .deduct-btn {
+            background: #ff416c;
+            color: white;
+        }
+        
+        .points-positive {
+            color: #00b09b;
+            font-weight: 600;
+        }
+        
+        .points-negative {
+            color: #ff416c;
+            font-weight: 600;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: #4e54c8;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .import-preview {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .preview-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #4e54c8;
+        }
+        
+        .preview-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .import-methods {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .method-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: #f0f0f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .method-tab.active {
+            background: #4e54c8;
+            color: white;
+        }
+        
+        .method-content {
+            display: none;
+        }
+        
+        .method-content.active {
+            display: block;
+        }
+        
+        .import-types {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .type-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: #f0f0f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .type-tab.active {
+            background: #4e54c8;
+            color: white;
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .sync-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+        
+        .sync-indicator.synced {
+            background-color: #00b09b;
+        }
+        
+        .sync-indicator.syncing {
+            background-color: #ff9a00;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+            
+            .import-methods, .import-types {
+                flex-direction: column;
+            }
+            
+            h1, .subtitle {
+                padding: 0 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="mainTitle">40人积分管理系统</h1>
+            <p class="subtitle" id="subTitle">记录积分变动，管理扣除原因，支持姓名和积分导入</p>
+            <button class="edit-title-btn" id="editTitleBtn">编辑标题</button>
+        </header>
+        
+        <div class="controls">
+            <div class="summary" id="summary">总人数: 40 | 总积分: <span id="totalPoints">0</span></div>
+            <div>
+                <button class="sync-btn" id="syncData">云同步</button>
+                <button class="import-btn" id="importData">导入数据</button>
+                <button class="add-btn" id="addPoints">批量添加积分</button>
+                <button class="reset-btn" id="resetData">重置数据</button>
+                <button class="export-btn" id="exportData">导出数据</button>
+            </div>
+        </div>
+        
+        <div class="sync-status" id="syncStatus">
+            <div class="sync-indicator" id="syncIndicator"></div>
+            <span id="syncMessage">数据仅保存在本地浏览器</span>
+        </div>
+        
+        <div class="table-container">
+            <table id="pointsTable">
+                <thead>
+                    <tr>
+                        <th width="5%">序号</th>
+                        <th width="15%">姓名</th>
+                        <th width="12%">积分</th>
+                        <th width="12%">扣除</th>
+                        <th width="25%">扣除原因</th>
+                        <th width="12%">现有积分</th>
+                        <th width="19%">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- 表格内容将通过JavaScript动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 编辑标题模态框 -->
+    <div class="modal" id="editTitleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">编辑系统标题</h2>
+                <button class="close-btn" id="closeEditTitleModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="systemTitle">系统标题</label>
+                <input type="text" id="systemTitle" placeholder="请输入系统标题">
+            </div>
+            <div class="form-group">
+                <label for="systemSubtitle">系统副标题</label>
+                <input type="text" id="systemSubtitle" placeholder="请输入系统副标题">
+            </div>
+            <button class="add-btn" id="confirmEditTitle">确认修改</button>
+        </div>
+    </div>
+
+    <!-- 云同步模态框 -->
+    <div class="modal" id="syncModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">云同步设置</h2>
+                <button class="close-btn" id="closeSyncModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="syncCode">同步代码</label>
+                <input type="text" id="syncCode" placeholder="请输入同步代码">
+                <div class="help-text">在不同设备上使用相同的同步代码，即可实现数据同步</div>
+            </div>
+            <div class="form-group">
+                <button class="sync-btn" id="generateSyncCode">生成新代码</button>
+                <button class="add-btn" id="confirmSyncCode">确认同步代码</button>
+            </div>
+            <div class="form-group">
+                <h3>同步说明</h3>
+                <div class="help-text">
+                    <p>1. 在每台设备上输入相同的同步代码</p>
+                    <p>2. 数据将自动保存到云端并同步到所有设备</p>
+                    <p>3. 同步代码请妥善保管，不要与他人共享</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量添加积分模态框 -->
+    <div class="modal" id="addPointsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">批量添加积分</h2>
+                <button class="close-btn" id="closeAddModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="pointsToAdd">积分数量</label>
+                <input type="number" id="pointsToAdd" placeholder="请输入要添加的积分" min="1">
+            </div>
+            <div class="form-group">
+                <label for="addReason">添加原因</label>
+                <input type="text" id="addReason" placeholder="请输入添加积分的原因">
+            </div>
+            <button class="add-btn" id="confirmAddPoints">确认添加</button>
+        </div>
+    </div>
+
+    <!-- 导入数据模态框 -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">导入数据</h2>
+                <button class="close-btn" id="closeImportModal">&times;</button>
+            </div>
+            
+            <div class="import-types">
+                <div class="type-tab active" data-type="base">导入姓名和基础积分</div>
+                <div class="type-tab" data-type="add">导入新增积分</div>
+            </div>
+            
+            <div class="import-methods">
+                <div class="method-tab active" data-method="table">表格导入</div>
+                <div class="method-tab" data-method="text">文本导入</div>
+            </div>
+            
+            <!-- 导入姓名和基础积分 - 表格导入方法 -->
+            <div class="method-content active" id="tableMethodBase">
+                <div class="form-group">
+                    <label for="tableDataInputBase">粘贴表格数据</label>
+                    <textarea id="tableDataInputBase" rows="10" placeholder="请从Excel或其他表格软件中复制数据并粘贴到这里。支持以下格式：
+- 每行一个人
+- 姓名和积分可以用制表符、逗号或空格分隔
+- 也可以直接粘贴表格的列
+
+例如：
+张三    100
+李四    80
+王五    120"></textarea>
+                    <div class="help-text">请从Excel或其他表格软件中复制姓名和积分列，然后粘贴到此处</div>
+                </div>
+                <div class="import-preview" id="tableImportPreviewBase">
+                    <div class="preview-title">导入预览 (0/40)</div>
+                    <div id="tablePreviewContentBase">暂无数据</div>
+                </div>
+            </div>
+            
+            <!-- 导入姓名和基础积分 - 文本导入方法 -->
+            <div class="method-content" id="textMethodBase">
+                <div class="form-group">
+                    <label for="textDataInputBase">输入姓名和积分</label>
+                    <textarea id="textDataInputBase" rows="10" placeholder="请输入姓名和积分（每行一个，格式：姓名,积分）
+
+例如：
+张三,100
+李四,80
+王五,120"></textarea>
+                    <div class="help-text">请输入40个人的姓名和积分，每行一个，格式为"姓名,积分"</div>
+                </div>
+                <div class="import-preview" id="textImportPreviewBase">
+                    <div class="preview-title">导入预览 (0/40)</div>
+                    <div id="textPreviewContentBase">暂无数据</div>
+                </div>
+            </div>
+            
+            <!-- 导入新增积分 - 表格导入方法 -->
+            <div class="method-content" id="tableMethodAdd">
+                <div class="form-group">
+                    <label for="tableDataInputAdd">粘贴表格数据</label>
+                    <textarea id="tableDataInputAdd" rows="10" placeholder="请从Excel或其他表格软件中复制数据并粘贴到这里。支持以下格式：
+- 每行一个人
+- 姓名和积分可以用制表符、逗号或空格分隔
+- 也可以直接粘贴表格的列
+
+例如：
+张三    50
+李四    30
+王五    20"></textarea>
+                    <div class="help-text">请从Excel或其他表格软件中复制姓名和积分列，然后粘贴到此处</div>
+                </div>
+                <div class="form-group">
+                    <label for="addPointsReason">增加积分原因</label>
+                    <input type="text" id="addPointsReason" placeholder="请输入增加积分的原因（例如：本月绩效）">
+                </div>
+                <div class="import-preview" id="tableImportPreviewAdd">
+                    <div class="preview-title">导入预览 (0/40)</div>
+                    <div id="tablePreviewContentAdd">暂无数据</div>
+                </div>
+            </div>
+            
+            <!-- 导入新增积分 - 文本导入方法 -->
+            <div class="method-content" id="textMethodAdd">
+                <div class="form-group">
+                    <label for="textDataInputAdd">输入姓名和积分</label>
+                    <textarea id="textDataInputAdd" rows="10" placeholder="请输入姓名和积分（每行一个，格式：姓名,积分）
+
+例如：
+张三,50
+李四,30
+王五,20"></textarea>
+                    <div class="help-text">请输入姓名和积分，每行一个，格式为"姓名,积分"</div>
+                </div>
+                <div class="form-group">
+                    <label for="addPointsReasonText">增加积分原因</label>
+                    <input type="text" id="addPointsReasonText" placeholder="请输入增加积分的原因（例如：本月绩效）">
+                </div>
+                <div class="import-preview" id="textImportPreviewAdd">
+                    <div class="preview-title">导入预览 (0/40)</div>
+                    <div id="textPreviewContentAdd">暂无数据</div>
+                </div>
+            </div>
+            
+            <button class="import-btn" id="confirmImport">确认导入</button>
+        </div>
+    </div>
+
+    <!-- 编辑姓名模态框 -->
+    <div class="modal" id="editNameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">编辑姓名</h2>
+                <button class="close-btn" id="closeEditNameModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="personName">姓名</label>
+                <input type="text" id="personName" placeholder="请输入姓名">
+            </div>
+            <button class="add-btn" id="confirmEditName">确认修改</button>
+        </div>
+    </div>
+
+    <!-- 增加积分模态框 -->
+    <div class="modal" id="addIndividualModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">增加积分</h2>
+                <button class="close-btn" id="closeAddIndividualModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="personNameAdd">姓名</label>
+                <input type="text" id="personNameAdd" readonly>
+            </div>
+            <div class="form-group">
+                <label for="pointsToAddIndividual">积分数量</label>
+                <input type="number" id="pointsToAddIndividual" placeholder="请输入要增加的积分" min="1">
+            </div>
+            <div class="form-group">
+                <label for="addIndividualReason">增加原因</label>
+                <input type="text" id="addIndividualReason" placeholder="请输入增加积分的原因">
+            </div>
+            <button class="add-btn" id="confirmAddIndividual">确认增加</button>
+        </div>
+    </div>
+
+    <!-- 扣除积分模态框 -->
+    <div class="modal" id="deductModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">扣除积分</h2>
+                <button class="close-btn" id="closeDeductModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="personNameDeduct">姓名</label>
+                <input type="text" id="personNameDeduct" readonly>
+            </div>
+            <div class="form-group">
+                <label for="currentPointsDeduct">当前积分</label>
+                <input type="text" id="currentPointsDeduct" readonly>
+            </div>
+            <div class="form-group">
+                <label for="pointsToDeduct">扣除积分</label>
+                <input type="number" id="pointsToDeduct" placeholder="请输入要扣除的积分" min="1">
+            </div>
+            <div class="form-group">
+                <label for="deductReason">扣除原因</label>
+                <input type="text" id="deductReason" placeholder="请输入扣除积分的原因">
+            </div>
+            <button class="deduct-btn" id="confirmDeduct">确认扣除</button>
+        </div>
+    </div>
+
+    <script>
+        // 初始化人员数据
+        let peopleData = JSON.parse(localStorage.getItem('peopleData')) || [];
+        
+        // 初始化标题数据
+        let titleData = JSON.parse(localStorage.getItem('titleData')) || {
+            mainTitle: "40人积分管理系统",
+            subTitle: "记录积分变动，管理扣除原因，支持姓名和积分导入"
+        };
+        
+        // 初始化同步设置
+        let syncData = JSON.parse(localStorage.getItem('syncData')) || {
+            syncCode: null,
+            lastSync: null
+        };
+        
+        // 如果数据为空，初始化40个人员
+        if (peopleData.length === 0) {
+            for (let i = 1; i <= 40; i++) {
+                peopleData.push({
+                    id: i,
+                    name: `人员${i}`,
+                    points: 0,
+                    history: []
+                });
+            }
+            saveData();
+        }
+        
+        // DOM元素
+        const mainTitleEl = document.getElementById('mainTitle');
+        const subTitleEl = document.getElementById('subTitle');
+        const editTitleBtn = document.getElementById('editTitleBtn');
+        const editTitleModal = document.getElementById('editTitleModal');
+        const closeEditTitleModal = document.getElementById('closeEditTitleModal');
+        const confirmEditTitle = document.getElementById('confirmEditTitle');
+        const systemTitle = document.getElementById('systemTitle');
+        const systemSubtitle = document.getElementById('systemSubtitle');
+        
+        const syncDataBtn = document.getElementById('syncData');
+        const syncModal = document.getElementById('syncModal');
+        const closeSyncModal = document.getElementById('closeSyncModal');
+        const syncCode = document.getElementById('syncCode');
+        const generateSyncCode = document.getElementById('generateSyncCode');
+        const confirmSyncCode = document.getElementById('confirmSyncCode');
+        const syncIndicator = document.getElementById('syncIndicator');
+        const syncMessage = document.getElementById('syncMessage');
+        
+        const tableBody = document.getElementById('tableBody');
+        const totalPointsEl = document.getElementById('totalPoints');
+        const summaryEl = document.getElementById('summary');
+        const importDataBtn = document.getElementById('importData');
+        const addPointsBtn = document.getElementById('addPoints');
+        const resetDataBtn = document.getElementById('resetData');
+        const exportDataBtn = document.getElementById('exportData');
+        const importModal = document.getElementById('importModal');
+        const addPointsModal = document.getElementById('addPointsModal');
+        const editNameModal = document.getElementById('editNameModal');
+        const addIndividualModal = document.getElementById('addIndividualModal');
+        const deductModal = document.getElementById('deductModal');
+        const closeImportModal = document.getElementById('closeImportModal');
+        const closeAddModal = document.getElementById('closeAddModal');
+        const closeEditNameModal = document.getElementById('closeEditNameModal');
+        const closeAddIndividualModal = document.getElementById('closeAddIndividualModal');
+        const closeDeductModal = document.getElementById('closeDeductModal');
+        const confirmImport = document.getElementById('confirmImport');
+        const confirmAddPoints = document.getElementById('confirmAddPoints');
+        const confirmEditName = document.getElementById('confirmEditName');
+        const confirmAddIndividual = document.getElementById('confirmAddIndividual');
+        const confirmDeduct = document.getElementById('confirmDeduct');
+        const tableDataInputBase = document.getElementById('tableDataInputBase');
+        const textDataInputBase = document.getElementById('textDataInputBase');
+        const tableDataInputAdd = document.getElementById('tableDataInputAdd');
+        const textDataInputAdd = document.getElementById('textDataInputAdd');
+        const addPointsReason = document.getElementById('addPointsReason');
+        const addPointsReasonText = document.getElementById('addPointsReasonText');
+        const tableImportPreviewBase = document.getElementById('tableImportPreviewBase');
+        const textImportPreviewBase = document.getElementById('textImportPreviewBase');
+        const tableImportPreviewAdd = document.getElementById('tableImportPreviewAdd');
+        const textImportPreviewAdd = document.getElementById('textImportPreviewAdd');
+        const tablePreviewContentBase = document.getElementById('tablePreviewContentBase');
+        const textPreviewContentBase = document.getElementById('textPreviewContentBase');
+        const tablePreviewContentAdd = document.getElementById('tablePreviewContentAdd');
+        const textPreviewContentAdd = document.getElementById('textPreviewContentAdd');
+        const pointsToAdd = document.getElementById('pointsToAdd');
+        const addReason = document.getElementById('addReason');
+        const personName = document.getElementById('personName');
+        const personNameAdd = document.getElementById('personNameAdd');
+        const pointsToAddIndividual = document.getElementById('pointsToAddIndividual');
+        const addIndividualReason = document.getElementById('addIndividualReason');
+        const personNameDeduct = document.getElementById('personNameDeduct');
+        const currentPointsDeduct = document.getElementById('currentPointsDeduct');
+        const pointsToDeduct = document.getElementById('pointsToDeduct');
+        const deductReason = document.getElementById('deductReason');
+        const methodTabs = document.querySelectorAll('.method-tab');
+        const methodContents = document.querySelectorAll('.method-content');
+        const typeTabs = document.querySelectorAll('.type-tab');
+        
+        let currentEditId = null;
+        let currentAddId = null;
+        let currentDeductId = null;
+        let currentImportMethod = 'table';
+        let currentImportType = 'base';
+        
+        // 初始化标题
+        function initTitle() {
+            mainTitleEl.textContent = titleData.mainTitle;
+            subTitleEl.textContent = titleData.subTitle;
+            document.title = titleData.mainTitle;
+        }
+        
+        // 初始化表格
+        function initTable() {
+            tableBody.innerHTML = '';
+            
+            peopleData.forEach((person, index) => {
+                const row = document.createElement('tr');
+                
+                // 计算现有积分（总积分减去所有扣除）
+                const totalDeducted = person.history
+                    .filter(record => record.type === 'deduct')
+                    .reduce((sum, record) => sum + record.points, 0);
+                
+                const currentPoints = person.points - totalDeducted;
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${person.name}</td>
+                    <td class="points-positive">${person.points}</td>
+                    <td class="points-negative">${totalDeducted}</td>
+                    <td>${getLastDeductReason(person)}</td>
+                    <td class="${currentPoints >= 0 ? 'points-positive' : 'points-negative'}">${currentPoints}</td>
+                    <td>
+                        <button class="action-btn edit-btn" data-id="${person.id}">编辑</button>
+                        <button class="action-btn add-btn-sm" data-id="${person.id}">增加</button>
+                        <button class="action-btn deduct-btn" data-id="${person.id}">扣除</button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // 添加按钮事件监听
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    openEditNameModal(id);
+                });
+            });
+            
+            document.querySelectorAll('.add-btn-sm').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    openAddIndividualModal(id);
+                });
+            });
+            
+            document.querySelectorAll('.deduct-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    openDeductModal(id);
+                });
+            });
+            
+            updateSummary();
+        }
+        
+        // 获取最近一次扣除原因
+        function getLastDeductReason(person) {
+            const deductRecords = person.history.filter(record => record.type === 'deduct');
+            if (deductRecords.length === 0) return '-';
+            return deductRecords[deductRecords.length - 1].reason;
+        }
+        
+        // 更新摘要信息
+        function updateSummary() {
+            const totalPoints = peopleData.reduce((sum, person) => {
+                const totalDeducted = person.history
+                    .filter(record => record.type === 'deduct')
+                    .reduce((sum, record) => sum + record.points, 0);
+                return sum + (person.points - totalDeducted);
+            }, 0);
+            
+            totalPointsEl.textContent = totalPoints;
+        }
+        
+        // 保存数据到localStorage
+        function saveData() {
+            localStorage.setItem('peopleData', JSON.stringify(peopleData));
+            localStorage.setItem('titleData', JSON.stringify(titleData));
+            localStorage.setItem('syncData', JSON.stringify(syncData));
+            
+            // 如果设置了同步代码，则尝试同步到云端
+            if (syncData.syncCode) {
+                syncToCloud();
+            }
+        }
+        
+        // 初始化同步状态显示
+        function initSyncStatus() {
+            if (syncData.syncCode) {
+                syncIndicator.classList.add('synced');
+                syncMessage.textContent = `已启用云同步 (代码: ${syncData.syncCode})`;
+            } else {
+                syncIndicator.classList.remove('synced');
+                syncMessage.textContent = "数据仅保存在本地浏览器";
+            }
+        }
+        
+        // 打开同步设置模态框
+        function openSyncModal() {
+            syncCode.value = syncData.syncCode || '';
+            syncModal.style.display = 'flex';
+        }
+        
+        // 生成同步代码
+        function generateNewSyncCode() {
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+            syncCode.value = code;
+        }
+        
+        // 确认同步代码
+        function confirmSyncCodeFunc() {
+            const code = syncCode.value.trim();
+            
+            if (!code) {
+                alert('请输入同步代码！');
+                return;
+            }
+            
+            syncData.syncCode = code;
+            syncData.lastSync = new Date().toISOString();
+            
+            saveData();
+            initSyncStatus();
+            syncModal.style.display = 'none';
+            
+            alert('同步代码设置成功！');
+        }
+        
+        // 同步到云端（模拟实现）
+        function syncToCloud() {
+            syncIndicator.classList.remove('synced');
+            syncIndicator.classList.add('syncing');
+            syncMessage.textContent = '正在同步到云端...';
+            
+            // 模拟网络延迟
+            setTimeout(() => {
+                // 在实际应用中，这里应该调用云存储API
+                // 这里我们使用localStorage模拟云存储
+                const cloudData = {
+                    peopleData: peopleData,
+                    titleData: titleData,
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                localStorage.setItem(`cloud_${syncData.syncCode}`, JSON.stringify(cloudData));
+                
+                syncIndicator.classList.remove('syncing');
+                syncIndicator.classList.add('synced');
+                syncMessage.textContent = `已同步到云端 (代码: ${syncData.syncCode})`;
+                
+                syncData.lastSync = new Date().toISOString();
+                localStorage.setItem('syncData', JSON.stringify(syncData));
+            }, 1000);
+        }
+        
+        // 从云端同步数据
+        function syncFromCloud() {
+            if (!syncData.syncCode) return;
+            
+            syncIndicator.classList.remove('synced');
+            syncIndicator.classList.add('syncing');
+            syncMessage.textContent = '正在从云端同步...';
+            
+            // 模拟网络延迟
+            setTimeout(() => {
+                // 在实际应用中，这里应该调用云存储API
+                // 这里我们使用localStorage模拟云存储
+                const cloudDataStr = localStorage.getItem(`cloud_${syncData.syncCode}`);
+                
+                if (cloudDataStr) {
+                    const cloudData = JSON.parse(cloudDataStr);
+                    
+                    // 检查云端数据是否比本地数据更新
+                    const cloudLastUpdated = new Date(cloudData.lastUpdated);
+                    const localLastUpdated = syncData.lastSync ? new Date(syncData.lastSync) : new Date(0);
+                    
+                    if (cloudLastUpdated > localLastUpdated) {
+                        peopleData = cloudData.peopleData;
+                        titleData = cloudData.titleData;
+                        
+                        saveData();
+                        initTitle();
+                        initTable();
+                        
+                        syncIndicator.classList.remove('syncing');
+                        syncIndicator.classList.add('synced');
+                        syncMessage.textContent = `已从云端同步最新数据 (代码: ${syncData.syncCode})`;
+                    } else {
+                        syncIndicator.classList.remove('syncing');
+                        syncIndicator.classList.add('synced');
+                        syncMessage.textContent = `已使用最新数据 (代码: ${syncData.syncCode})`;
+                    }
+                } else {
+                    // 云端没有数据，将本地数据同步到云端
+                    syncToCloud();
+                }
+                
+                syncData.lastSync = new Date().toISOString();
+                localStorage.setItem('syncData', JSON.stringify(syncData));
+            }, 1000);
+        }
+        
+        // 保存标题数据到localStorage
+        function saveTitleData() {
+            localStorage.setItem('titleData', JSON.stringify(titleData));
+            
+            // 如果设置了同步代码，则同步到云端
+            if (syncData.syncCode) {
+                syncToCloud();
+            }
+        }
+        
+        // 打开编辑标题模态框
+        function openEditTitleModal() {
+            systemTitle.value = titleData.mainTitle;
+            systemSubtitle.value = titleData.subTitle;
+            editTitleModal.style.display = 'flex';
+        }
+        
+        // 确认编辑标题
+        function confirmEditTitleFunc() {
+            const newTitle = systemTitle.value.trim();
+            const newSubtitle = systemSubtitle.value.trim();
+            
+            if (!newTitle) {
+                alert('请输入系统标题！');
+                return;
+            }
+            
+            titleData.mainTitle = newTitle;
+            titleData.subTitle = newSubtitle;
+            
+            saveTitleData();
+            initTitle();
+            editTitleModal.style.display = 'none';
+            
+            alert('系统标题修改成功！');
+        }
+        
+        // 打开导入模态框
+        function openImportModal() {
+            tableDataInputBase.value = '';
+            textDataInputBase.value = '';
+            tableDataInputAdd.value = '';
+            textDataInputAdd.value = '';
+            addPointsReason.value = '';
+            addPointsReasonText.value = '';
+            tablePreviewContentBase.innerHTML = '暂无数据';
+            textPreviewContentBase.innerHTML = '暂无数据';
+            tablePreviewContentAdd.innerHTML = '暂无数据';
+            textPreviewContentAdd.innerHTML = '暂无数据';
+            tableImportPreviewBase.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+            textImportPreviewBase.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+            tableImportPreviewAdd.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+            textImportPreviewAdd.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+            
+            // 默认显示表格导入方法和基础积分导入
+            switchImportMethod('table');
+            switchImportType('base');
+            
+            importModal.style.display = 'flex';
+        }
+        
+        // 切换导入方法
+        function switchImportMethod(method) {
+            currentImportMethod = method;
+            
+            // 更新标签页状态
+            methodTabs.forEach(tab => {
+                if (tab.getAttribute('data-method') === method) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // 更新内容显示
+            methodContents.forEach(content => {
+                const methodType = content.id.replace('Method', '');
+                if (methodType === `${method}${currentImportType.charAt(0).toUpperCase() + currentImportType.slice(1)}`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+        
+        // 切换导入类型
+        function switchImportType(type) {
+            currentImportType = type;
+            
+            // 更新标签页状态
+            typeTabs.forEach(tab => {
+                if (tab.getAttribute('data-type') === type) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // 更新内容显示
+            methodContents.forEach(content => {
+                const methodType = content.id.replace('Method', '');
+                if (methodType === `${currentImportMethod}${type.charAt(0).toUpperCase() + type.slice(1)}`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+        
+        // 预览基础积分表格导入数据
+        function previewTableImportDataBase() {
+            const text = tableDataInputBase.value.trim();
+            if (!text) {
+                tablePreviewContentBase.innerHTML = '暂无数据';
+                tableImportPreviewBase.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+                return;
+            }
+            
+            const importData = parseTableData(text);
+            let previewHTML = '';
+            
+            importData.forEach((item, index) => {
+                previewHTML += `<div class="preview-item">${index + 1}. ${item.name}: ${item.points} 积分</div>`;
+            });
+            
+            if (previewHTML === '') {
+                previewHTML = '暂无有效数据';
+            }
+            
+            tablePreviewContentBase.innerHTML = previewHTML;
+            tableImportPreviewBase.querySelector('.preview-title').textContent = `导入预览 (${importData.length}/40)`;
+        }
+        
+        // 预览新增积分表格导入数据
+        function previewTableImportDataAdd() {
+            const text = tableDataInputAdd.value.trim();
+            if (!text) {
+                tablePreviewContentAdd.innerHTML = '暂无数据';
+                tableImportPreviewAdd.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+                return;
+            }
+            
+            const importData = parseTableData(text);
+            let previewHTML = '';
+            
+            importData.forEach((item, index) => {
+                const person = peopleData.find(p => p.name === item.name);
+                const currentPoints = person ? person.points : 0;
+                previewHTML += `<div class="preview-item">${index + 1}. ${item.name}: ${currentPoints} → ${currentPoints + item.points} 积分</div>`;
+            });
+            
+            if (previewHTML === '') {
+                previewHTML = '暂无有效数据';
+            }
+            
+            tablePreviewContentAdd.innerHTML = previewHTML;
+            tableImportPreviewAdd.querySelector('.preview-title').textContent = `导入预览 (${importData.length}/40)`;
+        }
+        
+        // 解析表格数据
+        function parseTableData(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const importData = [];
+            
+            lines.forEach((line, index) => {
+                // 尝试多种分隔符：制表符、逗号、空格
+                let parts = line.split('\t');
+                if (parts.length < 2) {
+                    parts = line.split(',');
+                }
+                if (parts.length < 2) {
+                    // 尝试多个连续空格
+                    parts = line.split(/\s+/);
+                }
+                
+                if (parts.length >= 2) {
+                    const name = parts[0].trim();
+                    let points = 0;
+                    
+                    // 尝试从各个部分中提取数字作为积分
+                    for (let i = 1; i < parts.length; i++) {
+                        const num = parseInt(parts[i].trim());
+                        if (!isNaN(num)) {
+                            points = num;
+                            break;
+                        }
+                    }
+                    
+                    if (name && !isNaN(points)) {
+                        importData.push({
+                            name: name,
+                            points: points
+                        });
+                    }
+                }
+            });
+            
+            return importData;
+        }
+        
+        // 预览基础积分文本导入数据
+        function previewTextImportDataBase() {
+            const text = textDataInputBase.value.trim();
+            if (!text) {
+                textPreviewContentBase.innerHTML = '暂无数据';
+                textImportPreviewBase.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+                return;
+            }
+            
+            const importData = parseTextData(text);
+            let previewHTML = '';
+            
+            importData.forEach((item, index) => {
+                previewHTML += `<div class="preview-item">${index + 1}. ${item.name}: ${item.points} 积分</div>`;
+            });
+            
+            if (previewHTML === '') {
+                previewHTML = '暂无有效数据';
+            }
+            
+            textPreviewContentBase.innerHTML = previewHTML;
+            textImportPreviewBase.querySelector('.preview-title').textContent = `导入预览 (${importData.length}/40)`;
+        }
+        
+        // 预览新增积分文本导入数据
+        function previewTextImportDataAdd() {
+            const text = textDataInputAdd.value.trim();
+            if (!text) {
+                textPreviewContentAdd.innerHTML = '暂无数据';
+                textImportPreviewAdd.querySelector('.preview-title').textContent = '导入预览 (0/40)';
+                return;
+            }
+            
+            const importData = parseTextData(text);
+            let previewHTML = '';
+            
+            importData.forEach((item, index) => {
+                const person = peopleData.find(p => p.name === item.name);
+                const currentPoints = person ? person.points : 0;
+                previewHTML += `<div class="preview-item">${index + 1}. ${item.name}: ${currentPoints} → ${currentPoints + item.points} 积分</div>`;
+            });
+            
+            if (previewHTML === '') {
+                previewHTML = '暂无有效数据';
+            }
+            
+            textPreviewContentAdd.innerHTML = previewHTML;
+            textImportPreviewAdd.querySelector('.preview-title').textContent = `导入预览 (${importData.length}/40)`;
+        }
+        
+        // 解析文本数据
+        function parseTextData(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const importData = [];
+            
+            lines.forEach((line, index) => {
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const name = parts[0].trim();
+                    const points = parseInt(parts[1].trim());
+                    
+                    if (name && !isNaN(points)) {
+                        importData.push({
+                            name: name,
+                            points: points
+                        });
+                    }
+                }
+            });
+            
+            return importData;
+        }
+        
+        // 确认导入数据
+        function confirmImportData() {
+            let importData = [];
+            let reason = '';
+            
+            if (currentImportType === 'base') {
+                if (currentImportMethod === 'table') {
+                    const text = tableDataInputBase.value.trim();
+                    if (!text) {
+                        alert('请输入要导入的数据！');
+                        return;
+                    }
+                    importData = parseTableData(text);
+                } else {
+                    const text = textDataInputBase.value.trim();
+                    if (!text) {
+                        alert('请输入要导入的数据！');
+                        return;
+                    }
+                    importData = parseTextData(text);
+                }
+                
+                if (importData.length === 0) {
+                    alert('没有找到有效的数据！请检查数据格式');
+                    return;
+                }
+                
+                if (importData.length > 40) {
+                    alert(`导入数据超过40条，将只导入前40条`);
+                    importData.splice(40);
+                }
+                
+                // 更新人员数据
+                for (let i = 0; i < 40; i++) {
+                    if (i < importData.length) {
+                        peopleData[i] = {
+                            id: i + 1,
+                            name: importData[i].name,
+                            points: importData[i].points,
+                            history: []
+                        };
+                    } else {
+                        // 如果导入的数据不足40条，剩余的使用默认值
+                        peopleData[i] = {
+                            id: i + 1,
+                            name: `人员${i + 1}`,
+                            points: 0,
+                            history: []
+                        };
+                    }
+                }
+                
+                saveData();
+                initTable();
+                importModal.style.display = 'none';
+                
+                alert(`成功导入 ${importData.length} 条基础数据`);
+            } else {
+                // 新增积分导入
+                if (currentImportMethod === 'table') {
+                    const text = tableDataInputAdd.value.trim();
+                    if (!text) {
+                        alert('请输入要导入的数据！');
+                        return;
+                    }
+                    importData = parseTableData(text);
+                    reason = addPointsReason.value.trim();
+                } else {
+                    const text = textDataInputAdd.value.trim();
+                    if (!text) {
+                        alert('请输入要导入的数据！');
+                        return;
+                    }
+                    importData = parseTextData(text);
+                    reason = addPointsReasonText.value.trim();
+                }
+                
+                if (importData.length === 0) {
+                    alert('没有找到有效的数据！请检查数据格式');
+                    return;
+                }
+                
+                if (!reason) {
+                    alert('请输入增加积分的原因！');
+                    return;
+                }
+                
+                let updatedCount = 0;
+                
+                // 更新人员积分
+                importData.forEach(item => {
+                    const person = peopleData.find(p => p.name === item.name);
+                    if (person) {
+                        person.points += item.points;
+                        person.history.push({
+                            type: 'add',
+                            points: item.points,
+                            reason: reason,
+                            time: new Date().toLocaleString()
+                        });
+                        updatedCount++;
+                    }
+                });
+                
+                saveData();
+                initTable();
+                importModal.style.display = 'none';
+                
+                alert(`成功为 ${updatedCount} 人增加积分`);
+            }
+        }
+        
+        // 打开编辑姓名模态框
+        function openEditNameModal(id) {
+            const person = peopleData.find(p => p.id === id);
+            if (!person) return;
+            
+            currentEditId = id;
+            personName.value = person.name;
+            
+            editNameModal.style.display = 'flex';
+        }
+        
+        // 确认编辑姓名
+        function confirmEditNameFunc() {
+            if (!currentEditId) return;
+            
+            const newName = personName.value.trim();
+            
+            if (!newName) {
+                alert('请输入姓名！');
+                return;
+            }
+            
+            const person = peopleData.find(p => p.id === currentEditId);
+            if (!person) return;
+            
+            person.name = newName;
+            
+            saveData();
+            initTable();
+            editNameModal.style.display = 'none';
+            
+            alert(`成功修改姓名为: ${newName}`);
+        }
+        
+        // 打开增加积分模态框
+        function openAddIndividualModal(id) {
+            const person = peopleData.find(p => p.id === id);
+            if (!person) return;
+            
+            currentAddId = id;
+            personNameAdd.value = person.name;
+            pointsToAddIndividual.value = '';
+            addIndividualReason.value = '';
+            
+            addIndividualModal.style.display = 'flex';
+        }
+        
+        // 确认增加积分
+        function confirmAddIndividualFunc() {
+            if (!currentAddId) return;
+            
+            const points = parseInt(pointsToAddIndividual.value);
+            const reason = addIndividualReason.value.trim();
+            
+            if (!points || points <= 0) {
+                alert('请输入有效的积分数量！');
+                return;
+            }
+            
+            if (!reason) {
+                alert('请输入增加积分的原因！');
+                return;
+            }
+            
+            const person = peopleData.find(p => p.id === currentAddId);
+            if (!person) return;
+            
+            // 增加积分
+            person.points += points;
+            
+            // 添加记录
+            person.history.push({
+                type: 'add',
+                points: points,
+                reason: reason,
+                time: new Date().toLocaleString()
+            });
+            
+            saveData();
+            initTable();
+            addIndividualModal.style.display = 'none';
+            
+            alert(`成功为 ${person.name} 增加 ${points} 积分`);
+        }
+        
+        // 打开扣除积分模态框
+        function openDeductModal(id) {
+            const person = peopleData.find(p => p.id === id);
+            if (!person) return;
+            
+            const totalDeducted = person.history
+                .filter(record => record.type === 'deduct')
+                .reduce((sum, record) => sum + record.points, 0);
+            
+            currentDeductId = id;
+            personNameDeduct.value = person.name;
+            currentPointsDeduct.value = person.points - totalDeducted;
+            pointsToDeduct.value = '';
+            deductReason.value = '';
+            
+            deductModal.style.display = 'flex';
+        }
+        
+        // 确认扣除积分
+        function deductPoints() {
+            if (!currentDeductId) return;
+            
+            const points = parseInt(pointsToDeduct.value);
+            const reason = deductReason.value.trim();
+            
+            if (!points || points <= 0) {
+                alert('请输入有效的积分数量！');
+                return;
+            }
+            
+            if (!reason) {
+                alert('请输入扣除原因！');
+                return;
+            }
+            
+            const person = peopleData.find(p => p.id === currentDeductId);
+            if (!person) return;
+            
+            const totalDeducted = person.history
+                .filter(record => record.type === 'deduct')
+                .reduce((sum, record) => sum + record.points, 0);
+            
+            if (points > (person.points - totalDeducted)) {
+                alert('积分不足，无法扣除！');
+                return;
+            }
+            
+            // 添加扣除记录
+            person.history.push({
+                type: 'deduct',
+                points: points,
+                reason: reason,
+                time: new Date().toLocaleString()
+            });
+            
+            saveData();
+            initTable();
+            deductModal.style.display = 'none';
+            
+            alert(`成功扣除 ${person.name} 的 ${points} 积分`);
+        }
+        
+        // 批量添加积分
+        function batchAddPoints() {
+            const points = parseInt(pointsToAdd.value);
+            const reason = addReason.value.trim();
+            
+            if (!points || points <= 0) {
+                alert('请输入有效的积分数量！');
+                return;
+            }
+            
+            if (!reason) {
+                alert('请输入添加积分的原因！');
+                return;
+            }
+            
+            // 为每个人添加积分
+            peopleData.forEach(person => {
+                person.points += points;
+                person.history.push({
+                    type: 'add',
+                    points: points,
+                    reason: reason,
+                    time: new Date().toLocaleString()
+                });
+            });
+            
+            saveData();
+            initTable();
+            addPointsModal.style.display = 'none';
+            
+            alert(`成功为所有人添加 ${points} 积分`);
+        }
+        
+        // 重置数据
+        function resetData() {
+            if (confirm('确定要重置所有数据吗？此操作不可恢复！')) {
+                peopleData = [];
+                for (let i = 1; i <= 40; i++) {
+                    peopleData.push({
+                        id: i,
+                        name: `人员${i}`,
+                        points: 0,
+                        history: []
+                    });
+                }
+                saveData();
+                initTable();
+            }
+        }
+        
+        // 导出数据
+        function exportData() {
+            const exportData = {
+                peopleData: peopleData,
+                titleData: titleData,
+                exportTime: new Date().toLocaleString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `积分数据_${new Date().toLocaleDateString()}.json`;
+            link.click();
+        }
+        
+        // 事件监听
+        editTitleBtn.addEventListener('click', openEditTitleModal);
+        closeEditTitleModal.addEventListener('click', () => {
+            editTitleModal.style.display = 'none';
+        });
+        confirmEditTitle.addEventListener('click', confirmEditTitleFunc);
+        
+        syncDataBtn.addEventListener('click', openSyncModal);
+        closeSyncModal.addEventListener('click', () => {
+            syncModal.style.display = 'none';
+        });
+        generateSyncCode.addEventListener('click', generateNewSyncCode);
+        confirmSyncCode.addEventListener('click', confirmSyncCodeFunc);
+        
+        importDataBtn.addEventListener('click', openImportModal);
+        addPointsBtn.addEventListener('click', () => {
+            pointsToAdd.value = '';
+            addReason.value = '';
+            addPointsModal.style.display = 'flex';
+        });
+        
+        resetDataBtn.addEventListener('click', resetData);
+        exportDataBtn.addEventListener('click', exportData);
+        
+        closeImportModal.addEventListener('click', () => {
+            importModal.style.display = 'none';
+        });
+        
+        closeAddModal.addEventListener('click', () => {
+            addPointsModal.style.display = 'none';
+        });
+        
+        closeEditNameModal.addEventListener('click', () => {
+            editNameModal.style.display = 'none';
+        });
+        
+        closeAddIndividualModal.addEventListener('click', () => {
+            addIndividualModal.style.display = 'none';
+        });
+        
+        closeDeductModal.addEventListener('click', () => {
+            deductModal.style.display = 'none';
+        });
+        
+        confirmImport.addEventListener('click', confirmImportData);
+        confirmAddPoints.addEventListener('click', batchAddPoints);
+        confirmEditName.addEventListener('click', confirmEditNameFunc);
+        confirmAddIndividual.addEventListener('click', confirmAddIndividualFunc);
+        confirmDeduct.addEventListener('click', deductPoints);
+        
+        // 实时预览导入数据
+        tableDataInputBase.addEventListener('input', previewTableImportDataBase);
+        textDataInputBase.addEventListener('input', previewTextImportDataBase);
+        tableDataInputAdd.addEventListener('input', previewTableImportDataAdd);
+        textDataInputAdd.addEventListener('input', previewTextImportDataAdd);
+        
+        // 切换导入方法
+        methodTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const method = this.getAttribute('data-method');
+                switchImportMethod(method);
+            });
+        });
+        
+        // 切换导入类型
+        typeTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                switchImportType(type);
+            });
+        });
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === editTitleModal) {
+                editTitleModal.style.display = 'none';
+            }
+            if (e.target === syncModal) {
+                syncModal.style.display = 'none';
+            }
+            if (e.target === importModal) {
+                importModal.style.display = 'none';
+            }
+            if (e.target === addPointsModal) {
+                addPointsModal.style.display = 'none';
+            }
+            if (e.target === editNameModal) {
+                editNameModal.style.display = 'none';
+            }
+            if (e.target === addIndividualModal) {
+                addIndividualModal.style.display = 'none';
+            }
+            if (e.target === deductModal) {
+                deductModal.style.display = 'none';
+            }
+        });
+        
+        // 初始加载
+        initTitle();
+        initTable();
+        initSyncStatus();
+        
+        // 如果设置了同步代码，自动从云端同步
+        if (syncData.syncCode) {
+            syncFromCloud();
+        }
+    </script>
+</body>
+</html>
